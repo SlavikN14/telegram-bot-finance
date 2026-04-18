@@ -1,8 +1,11 @@
-rootProject.name = "telegram-bot"
+rootProject.name = "tg-finance-tracker"
 
 include(
-    "internal-api",
+    "shared-api",
     "telegram-bot",
     "finance-service",
-    "finance-service:finance"
+    "finance-service:domain",
+    "finance-service:application",
+    "finance-service:infrastructure",
+    "finance-service:bootstrap"
 )

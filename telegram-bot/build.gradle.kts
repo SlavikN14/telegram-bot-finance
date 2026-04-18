@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":internal-api"))
+    implementation(project(":shared-api"))
 
     implementation("org.telegram:telegrambots:$telegramBotVersion")
     implementation("org.telegram:telegrambots-spring-boot-starter:$telegramBotVersion")
