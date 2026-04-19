@@ -1,7 +1,9 @@
 #!/bin/bash
+set -e
 
-./gradlew clean
+# Run from repo root regardless of where the script is invoked from.
+cd "$(dirname "$0")/.."
 
-./gradlew assemble
+./gradlew clean assemble
 
-docker compose up --force-recreate --build -d
+docker compose -f env/docker-compose.yaml up --force-recreate --build -d

@@ -21,6 +21,9 @@ services:
     ports:
       - "8080:8080"
       - "9091:9091"
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN:-}
+      BOT_USERNAME: ${BOT_USERNAME:-FinanceManageBot}
     depends_on:
       mongo:
         condition: service_healthy

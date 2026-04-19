@@ -7,5 +7,4 @@ include(
     "finance-service:domain",
     "finance-service:application",
     "finance-service:infrastructure",
-    "finance-service:bootstrap"
 )

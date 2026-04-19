@@ -2,26 +2,19 @@ name: Build
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [master]
   pull_request:
-    branches: [ "**" ]
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  JAVA_VERSION: "17"
-  JAVA_DISTRIBUTION: temurin
-  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2g -Dorg.gradle.daemon=false"
-
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,23 +22,35 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          java-version: 17
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
-      - name: Assemble
-        run: ./gradlew assemble
+      - name: Start infra
+        run: docker compose -f env/docker-compose.yaml up -d mongo redis nats zookeeper kafka schema-registry
 
-      - name: Start infra 
-        run: docker compose up -d mongo redis nats zookeeper kafka schema-registry
+      - name: Build & test
+        run: ./gradlew build
 
-      - name: Run tests
-        run: ./gradlew test
+      - name: Smoke Test
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
+        run: |
+          if [ -z "$BOT_TOKEN" ]; then
+            echo "::warning::Skipping — BOT_TOKEN not set"
+            exit 0
+          fi
+          docker compose -f env/docker-compose.yaml up -d --build telegram-bot finance-service
+          sleep 30
+          docker compose -f env/docker-compose.yaml ps
+          running=$(docker compose -f env/docker-compose.yaml ps --services --filter status=running)
+          for svc in finance-service telegram-bot; do
+            grep -qx "$svc" <<<"$running" || { docker compose -f env/docker-compose.yaml logs "$svc"; exit 1; }
+          done
 
       - name: Shutdown
         if: always()
-        run: docker compose down -v
+        run: docker compose -f env/docker-compose.yaml down -v

@@ -41,17 +41,17 @@ Telegram bot for tracking personal finances. Pulls live currency exchange rates 
 
 ```
 telegram-bot/             # Edge service: Telegram API, i18n, Redis cache, Monobank client
-finance-service/          # Domain service, split into hexagonal layers:
+finance-service/          # Domain service (Spring Boot app), split into hexagonal layers:
   ├── domain/             # Entities, value objects, domain services — zero frameworks
-  ├── application/        # Use cases, input/output ports — depends on domain only
-  ├── infrastructure/     # Adapters: Mongo, NATS, mappers, gRPC — Spring lives here
-  └── bootstrap/          # Spring Boot entrypoint, wiring, resources, Dockerfile jar
+  ├── application/        # Use cases (per-operation ports), output ports — depends on domain only
+  ├── infrastructure/     # Adapters: Mongo, NATS, mappers — Spring lives here
+  └── src/                # Spring Boot entrypoint + resources + integration tests
 shared-api/               # Shared gRPC / Protobuf / Kafka schemas
 docker-compose.yaml       # Local infra (Mongo, Redis, NATS, Kafka, Schema Registry)
 ```
 
 Dependency direction inside `finance-service/`:
-`bootstrap → infrastructure → application → domain`. Domain and application know nothing about Spring, Mongo, or NATS — that is the point of the hexagon.
+`app (src/) → infrastructure → application → domain`. Domain and application know nothing about Spring, Mongo, or NATS — that is the point of the hexagon.
 
 ## Prerequisites
 
@@ -59,24 +59,32 @@ Dependency direction inside `finance-service/`:
 - Docker + Docker Compose
 - Telegram bot token from [@BotFather](https://t.me/BotFather)
 
+## Secrets & Environment
+
+| Variable       | Required | Description                                                 |
+|----------------|----------|-------------------------------------------------------------|
+| `BOT_TOKEN`    | Yes      | Telegram bot token from [@BotFather](https://t.me/BotFather). |
+| `BOT_USERNAME` | No       | Bot username. Defaults to `FinanceManageBot`.               |
+
+Local development: export these in your shell before running the compose stack.
+
 ## Getting Started
 
 1. Clone the repo.
-2. Provide the bot token via env vars (recommended), JVM options, or `telegram-bot/src/main/resources/application.yaml`:
+2. Export the bot token (or put it into `telegram-bot/src/main/resources/application.yaml`):
 
-   ```yaml
-   bot:
-     token: your_bot_token
-     username: your_bot_name
+   ```bash
+   export BOT_TOKEN=your_bot_token
+   export BOT_USERNAME=your_bot_name   # optional
    ```
 
 3. Launch everything:
 
    ```bash
-   ./run-docker-compose.sh
+   ./env/run-docker-compose.sh
    ```
 
-   This builds the Gradle artifacts and starts all services + infrastructure via Docker Compose.
+   This builds the Gradle artifacts and starts all services + infrastructure via Docker Compose (`env/docker-compose.yaml`).
 
 ### Run locally without Docker
 
