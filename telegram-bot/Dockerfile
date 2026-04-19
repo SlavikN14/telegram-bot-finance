@@ -1,4 +1,4 @@
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-jammy
 EXPOSE 8080
 
 ARG APP_HOME=/app
