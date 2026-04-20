@@ -1,4 +1,4 @@
-# Finance Bot
+# Telegram Finance Tracker Bot
 
 [![Build](https://github.com/SlavikN14/telegram-bot-finance/actions/workflows/build.yaml/badge.svg)](https://github.com/SlavikN14/telegram-bot-finance/actions/workflows/build.yaml)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
